@@ -1,7 +1,7 @@
-From 5f0e122aa4380bdcc474638cb1530ab33b95a10e Mon Sep 17 00:00:00 2001
+From a348345d4d51040439e488f7fd76b7d537a4a3c0 Mon Sep 17 00:00:00 2001
 From: Piotr Gorski <lucjan.lucjanov@gmail.com>
-Date: Mon, 13 Jul 2026 22:34:12 +0200
-Subject: [PATCH] aufs-7.2: merge v20260713
+Date: Mon, 24 Aug 2026 17:53:11 +0200
+Subject: [PATCH] aufs-7.2: merge v20260824
 
 Signed-off-by: Piotr Gorski <lucjan.lucjanov@gmail.com>
 ---
@@ -1960,10 +1960,10 @@ index 000000000..6d74c81b5
 +Currently this approach is applied to address_space_operations for
 +regular files only.
 diff --git a/MAINTAINERS b/MAINTAINERS
-index 806bd2d80..47bdb7b3c 100644
+index 8014b9f82..ad3e58af8 100644
 --- a/MAINTAINERS
 +++ b/MAINTAINERS
-@@ -4332,6 +4332,19 @@ F:	kernel/audit*
+@@ -4323,6 +4323,19 @@ F:	kernel/audit*
  F:	lib/*audit.c
  K:	\baudit_[a-z_0-9]\+\b
  
@@ -1984,7 +1984,7 @@ index 806bd2d80..47bdb7b3c 100644
  M:	Rong Xu <xur@google.com>
  M:	Han Shen <shenhan@google.com>
 diff --git a/drivers/block/loop.c b/drivers/block/loop.c
-index 310de0463..6313fd7b1 100644
+index 1faecef33..eb2432ac1 100644
 --- a/drivers/block/loop.c
 +++ b/drivers/block/loop.c
 @@ -52,7 +52,7 @@ struct loop_device {
@@ -2136,12 +2136,13 @@ index 310de0463..6313fd7b1 100644
  	/* This is safe: open() is still holding a reference. */
  	module_put(THIS_MODULE);
  	return error;
-@@ -1112,11 +1173,13 @@ static void __loop_clr_fd(struct loop_device *lo)
+@@ -1112,12 +1173,14 @@ static void __loop_clr_fd(struct loop_device *lo)
  {
  	struct queue_limits lim;
  	struct file *filp;
 +	struct file *virt_filp = lo->lo_backing_virt_file;
  	gfp_t gfp = lo->old_gfp_mask;
+ 	int err;
  
  	spin_lock_irq(&lo->lo_lock);
  	filp = lo->lo_backing_file;
@@ -2150,7 +2151,7 @@ index 310de0463..6313fd7b1 100644
  	spin_unlock_irq(&lo->lo_lock);
  
  	lo->lo_device = NULL;
-@@ -1183,6 +1246,8 @@ static void __loop_clr_fd(struct loop_device *lo)
+@@ -1179,6 +1242,8 @@ static void __loop_clr_fd(struct loop_device *lo)
  	 * fput can take open_mutex which is usually taken before lo_mutex.
  	 */
  	fput(filp);
@@ -38144,7 +38145,7 @@ index 3e9af9de7..e67af79fc 100644
  struct check_mount {
  	struct vfsmount *mnt;
 diff --git a/fs/exec.c b/fs/exec.c
-index d5993cedc..85393f39e 100644
+index c7b8f2d63..0d9a21ca2 100644
 --- a/fs/exec.c
 +++ b/fs/exec.c
 @@ -121,6 +121,7 @@ bool path_noexec(const struct path *path)
@@ -38592,7 +38593,7 @@ index 9dec4861d..14583d846 100644
  #endif
 diff --git a/include/uapi/linux/aufs_type.h b/include/uapi/linux/aufs_type.h
 new file mode 100644
-index 000000000..b0e860bc0
+index 000000000..e221913e9
 --- /dev/null
 +++ b/include/uapi/linux/aufs_type.h
 @@ -0,0 +1,434 @@
@@ -38625,7 +38626,7 @@ index 000000000..b0e860bc0
 +#include <limits.h>
 +#endif /* __KERNEL__ */
 +
-+#define AUFS_VERSION	"7.x-rcN-20260713"
++#define AUFS_VERSION	"7.2-20260824"
 +
 +/* todo? move this to linux-2.6.19/include/magic.h */
 +#define AUFS_SUPER_MAGIC	('a' << 24 | 'u' << 16 | 'f' << 8 | 's')
