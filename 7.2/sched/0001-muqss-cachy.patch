@@ -1,7 +1,7 @@
-From a133ddb342d417fec2df38e0950fa2cd1e690a04 Mon Sep 17 00:00:00 2001
+From f77d25758ec26016bfeed8e8ecacb9f786aa908d Mon Sep 17 00:00:00 2001
 From: Piotr Gorski <lucjan.lucjanov@gmail.com>
 Date: Mon, 17 Aug 2026 17:46:40 +0200
-Subject: [PATCH 1/4] Revert POC
+Subject: [PATCH 1/5] Revert POC
 
 Signed-off-by: Piotr Gorski <lucjan.lucjanov@gmail.com>
 ---
@@ -2599,10 +2599,10 @@ index 339d505c8..622e2e019 100644
 2.55.0
 
 
-From c97bdf5d648ea836aa284ab930dea19986218670 Mon Sep 17 00:00:00 2001
+From 4e62662e72a310a7b8de06e3d50569d6affdebca Mon Sep 17 00:00:00 2001
 From: Piotr Gorski <lucjan.lucjanov@gmail.com>
 Date: Mon, 17 Aug 2026 17:47:25 +0200
-Subject: [PATCH 2/4] Revert gaming-sched
+Subject: [PATCH 2/5] Revert gaming-sched
 
 Signed-off-by: Piotr Gorski <lucjan.lucjanov@gmail.com>
 ---
@@ -4625,10 +4625,10 @@ index 4664869d8..a4a1eb57a 100644
 2.55.0
 
 
-From 3e3779c3d26b3f2c018753e94f85d85d8e9c25da Mon Sep 17 00:00:00 2001
+From e5dd11e52ec3c3bc3139b03cfe01263de67d48d5 Mon Sep 17 00:00:00 2001
 From: Piotr Gorski <lucjan.lucjanov@gmail.com>
 Date: Mon, 17 Aug 2026 22:57:38 +0200
-Subject: [PATCH 3/4] muqss-cachy
+Subject: [PATCH 3/5] muqss-cachy
 
 Signed-off-by: Piotr Gorski <lucjan.lucjanov@gmail.com>
 ---
@@ -22114,10 +22114,11 @@ index 2932eaf15..6cb136235 100644
 2.55.0
 
 
-From 7722d599050004dbe39f7a50d14919d1bbe7e5dc Mon Sep 17 00:00:00 2001
+From 9c4b3d047c3ac89989f3ceec94124751f62d808f Mon Sep 17 00:00:00 2001
 From: dvize <fakeemail@gmail.com>
 Date: Tue, 18 Aug 2026 10:56:10 +0200
-Subject: [PATCH 4/4] scx-scheds-git: bump version and tag
+Subject: [PATCH 4/5] Fix PSI irq time accounting build for default arch
+ config.
 
 ---
  kernel/sched/MuQSS.h | 1 +
@@ -22135,6 +22136,65 @@ index 0c461e650..7c1a90e7b 100644
  #endif /* CONFIG_IRQ_TIME_ACCOUNTING */
  #ifdef CONFIG_PARAVIRT
  	u64 prev_steal_time;
+-- 
+2.55.0
+
+
+From 3f5909cf57d7a78840a9a37de274b1b3c3076844 Mon Sep 17 00:00:00 2001
+From: Piotr Gorski <lucjan.lucjanov@gmail.com>
+Date: Thu, 27 Aug 2026 13:45:31 +0200
+Subject: [PATCH 5/5] sched/muqss: sync with CK repo
+
+Signed-off-by: Piotr Gorski <lucjan.lucjanov@gmail.com>
+---
+ kernel/Kconfig.MuQSS   |  1 +
+ tools/objtool/Makefile | 11 +++++++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/kernel/Kconfig.MuQSS b/kernel/Kconfig.MuQSS
+index 3dad0e814..6b0ec452d 100644
+--- a/kernel/Kconfig.MuQSS
++++ b/kernel/Kconfig.MuQSS
+@@ -205,6 +205,7 @@ config MUQSS_IOTIME
+ #   init/Kconfig                              UCLAMP_TASK
+ #                                             SCHED_PROXY_EXEC
+ #                                             NUMA_BALANCING
++#                                             SCHED_CACHE
+ #                                             SCHED_MM_CID
+ #                                             CGROUP_CPUACCT
+ #                                             SCHED_AUTOGROUP
+diff --git a/tools/objtool/Makefile b/tools/objtool/Makefile
+index a4484fd22..3271b1de5 100644
+--- a/tools/objtool/Makefile
++++ b/tools/objtool/Makefile
+@@ -99,9 +99,19 @@ LIBOPCODES_LIBS := $(shell \
+ HAVE_DISASM_STYLED := $(shell echo '$(pound)include <dis-asm.h>' | \
+ 			$(HOSTCC) -E -xc - 2>/dev/null | grep -q disassembler_style && echo y)
+ 
++#
++# Linking -lopcodes can succeed when the shared library is present without
++# development headers. That is common on Gentoo without sys-libs/binutils-libs
++# (bfd.h lives under /usr/lib64/binutils/<tuple>/<ver>/include, not
++# /usr/include). Do not enable DISAS unless the headers actually compile.
++#
++HAVE_DISAS_HEADERS := $(shell printf "$(pound)include <bfd.h>\n$(pound)include <dis-asm.h>\nint main(void) { return 0; }\n" | \
++			$(HOSTCC) $(HOSTCFLAGS) -DPACKAGE='"objtool"' -xc - -c -o /dev/null 2>/dev/null && echo y)
++
+ BUILD_DISAS := n
+ 
+ ifneq ($(LIBOPCODES_LIBS),)
++ifeq ($(HAVE_DISAS_HEADERS),y)
+ 	BUILD_DISAS := y
+ 	OBJTOOL_CFLAGS += -DDISAS -DPACKAGE='"objtool"'
+ 	OBJTOOL_LDFLAGS += $(LIBOPCODES_LIBS)
+@@ -109,6 +119,7 @@ ifeq ($(HAVE_DISASM_STYLED),y)
+ 	OBJTOOL_CFLAGS += -DDISASM_INIT_STYLED
+ endif
+ endif
++endif
+ 
+ export BUILD_DISAS
+ 
 -- 
 2.55.0
 
